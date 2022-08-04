@@ -70,6 +70,7 @@ class Pdf
             $pdfFilename = basename($pdfOriginal, '.' . $info['extension']) . '_';
             $pdfTempFile = GeneralUtility::tempnam($pdfFilename, '.pdf');
             $pdf = new \FPDM($pdfOriginal);
+            $pdf->useCheckboxParser = true; // Checkbox parsing is ignored (default FPDM behaviour) unless enabled with this setting https://github.com/codeshell/fpdm#checkboxes
             $pdf->Load($fdfDataStrings, true); // second parameter: false if field values are in ISO-8859-1, true if UTF-8
             $pdf->Merge();
             $pdf->Output("F", GeneralUtility::getFileAbsFileName($pdfTempFile));
