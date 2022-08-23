@@ -26,9 +26,22 @@ class Pdf
     /** @var ResourceFactory */
     protected $resourceFactory;
 
+    /** @var array */
+    protected $settings;
+
+    /** @var string */
+    protected $additionalNamePart = '';
+
+    /** @var string */
+    protected $fileName = '';
+
+    /** @var File|null */
+    protected $downloadFile = null;
+
     public function __construct(ResourceFactory $resourceFactory)
     {
         $this->resourceFactory = $resourceFactory;
+        $this->settings = $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_powermailpdf.']['settings.'];
     }
 
     /**
@@ -103,23 +116,29 @@ class Pdf
      */
     public function createActionBeforeRenderView(Mail $mail, string $hash = '', $formController = null): void
     {
-        $settings = $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_powermailpdf.']['settings.'];
 
-        if ($settings['enablePowermailPdf']) {
-            if ($settings['sourceFile']) {
-                if (!file_exists(GeneralUtility::getFileAbsFileName($settings['sourceFile']))) {
-                    throw new \Exception("The file does not exist: " . $settings['sourceFile'] . " Please set correct path in plugin.tx_powermailpdf.settings.sourceFile", 1417520887);
+        if ($this->settings['enablePowermailPdf']) {
+            if ($this->settings['target.']['additionalNamePart']) $this->additionalNamePart = iconv("UTF-8", "ASCII//TRANSLIT", $mail->getAnswersByFieldMarker()[$this->settings['target.']['additionalNamePart']]->getValue());
+            if ($this->settings['sourceFile']) {
+                if (!file_exists(GeneralUtility::getFileAbsFileName($this->settings['sourceFile']))) {
+                    throw new \Exception("The file does not exist: " . $this->settings['sourceFile'] . " Please set correct path in plugin.tx_powermailpdf.settings.sourceFile", 1417520887);
                 }
             }
 
-            if ($settings['fillPdf']) {
+            if ($this->settings['fillPdf']) {
                 $powermailPdfFile = $this->generatePdf($mail);
 
             } else {
                 $powermailPdfFile = null;
             }
 
-            if ($settings['showDownloadLink']) {
+            if ($this->settings['showDownloadLink'] && $this->settings['target.']['pdf'] && !empty($this->downloadFile)) {
+                $queryParameterArray = ['eID' => 'dumpFile', 't' => 'f'];
+                $queryParameterArray['f'] = $this->downloadFile->getUid();
+                $queryParameterArray['token'] = GeneralUtility::hmac(implode('|', $queryParameterArray), 'resourceStorageDumpFile');
+                $publicUrl = GeneralUtility::locationHeaderUrl(PathUtility::getAbsoluteWebPath(Environment::getPublicPath() . '/index.php'));
+                $publicUrl .= '?' . http_build_query($queryParameterArray, '', '&', PHP_QUERY_RFC3986);
+                $publicUrlPlain = GeneralUtility::locationHeaderUrl(PathUtility::getAbsoluteWebPath(Environment::getPublicPath())) . $this->downloadFile->getPublicUrl();
                 $label = LocalizationUtility::translate("download", "powermailpdf");
                 //Adds a field for the download link at the thx site
                 /* @var $answer \In2code\Powermail\Domain\Model\Answer */
@@ -130,11 +149,12 @@ class Pdf
                 $field->setMarker('downloadLink');
                 $field->setType('downloadLink');
                 $answer->setField($field);
-                $answer->setValue($this->render($powermailPdfFile, $label));
+//                $answer->setValue('<a href="' . $publicUrl . '" title="' . $label . '" target="_blank" class="ico-class" type="button">' . basename($powermailPdfFile) . '</a>');
+                $answer->setValue($this->render($publicUrl, $label, basename($powermailPdfFile)));
                 $mail->addAnswer($answer);
             }
 
-            if ($settings['email.']['attachFile']) {
+            if ($this->settings['email.']['attachFile']) {
                 // set pdf filename for attachment via TypoScript
                 if ($formController) {
                     /** @var FormController $formController */
