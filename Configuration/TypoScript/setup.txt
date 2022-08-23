@@ -14,6 +14,12 @@ plugin.tx_powermailpdf {
 	settings {
 	    target{
             pdf = {$plugin.tx_powermailpdf.settings.target.pdf}
+			# marker of powermail field
+			additionalNamePart = {$plugin.tx_powermailpdf.settings.target.additionalNamePart}
+			# as part of download file name
+			useDateTime = {$plugin.tx_powermailpdf.settings.target.useDateTime}
+			# flatten pdf
+			flatten = {$plugin.tx_powermailpdf.settings.target.flatten}
     	}
     	template = {$plugin.tx_powermailpdf.settings.template}
 

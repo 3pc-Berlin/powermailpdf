@@ -2,7 +2,13 @@ plugin.tx_powermailpdf {
 	settings{
 	    target{
             # cat=plugin.tx_powermailpdf/settings; type=string; label=Target pdf:Format StoragePid:Folder
-            pdf = 1:powermailpdf
+            pdf =
+			# marker of powermail field
+			additionalNamePart =
+			# as part of download file name
+			useDateTime = 1
+			# flatten pdf
+			flatten = 1
         }
         # cat=plugin.tx_powermailpdf/template; type=input; label=Template
         template = EXT:powermailpdf/Resources/Private/Template/Link.html
