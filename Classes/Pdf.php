@@ -158,12 +158,54 @@ class Pdf
                 // set pdf filename for attachment via TypoScript
                 if ($formController) {
                     /** @var FormController $formController */
-                    $settings = $formController->getSettings();
-                    $settings['receiver']['addAttachment']['value'] = $powermailPdfFile->getForLocalProcessing(false);
-                    $settings['sender']['addAttachment']['value'] = $powermailPdfFile->getForLocalProcessing(false);
-                    $formController->setSettings($settings);
+                    $settingsPowermail = $formController->getSettings();
+                    $settingsPowermail['receiver']['addAttachment']['value'] = $powermailPdfFile;
+                    $settingsPowermail['sender']['addAttachment']['value'] = $powermailPdfFile;
+                    $formController->setSettings($settingsPowermail);
+                } else {
+                    $mail->setAdditionalData(['powermailpdf_file' => $powermailPdfFile, 'powermailpdf_filename' => $this->fileName]);
                 }
             }
         }
+    }
+
+    /**
+     * Signal slot sendTemplateEmailBeforeSend
+     *
+     * @param MailMessage $message
+     * @param \array $email
+     * @param SendMailService $sendMailService
+     */
+    public function manipulateMail(MailMessage $message, array &$email, SendMailService $sendMailService)
+    {
+        if ($this->settings['enablePowermailPdf']) {
+            if (($sendMailService->getType() === 'receiver' && $this->settings['receiver.']['attachment'] == 1) || ($sendMailService->getType() === 'sender' && $this->settings['sender.']['attachment'] == 1)) {
+                if ($this->settings['email.']['attachFile']) {
+                    // set pdf filename for attachment via TypoScript
+                    if (!method_exists(FormController::class, 'setSettings')) {
+                        $additionalData = $sendMailService->getMail()->getAdditionalData();
+                        if (isset($additionalData['powermailpdf_file'])) {
+                            $powermailPdfFile = $additionalData['powermailpdf_file'];
+                            $attachment = \Swift_Attachment::fromPath($powermailPdfFile)->setFilename($additionalData['powermailpdf_filename']);
+                            $message->attach($attachment);
+                        }
+                    }
+                }
+            }
+            if ($this->settings['showDownloadLink'] && $this->settings['target.']['pdf']) $message->setBody(html_entity_decode($message->getBody()));
+        }
+
+        if ($sendMailService->getType() === 'receiver') {
+            $message->send();
+            if ($email['variables']['hash'] === '') {
+                $sendMailService->getMail()->setSenderMail($email['senderEmail']);
+                $sendMailService->getMail()->setSenderName($email['senderName']);
+                $sendMailService->getMail()->setReceiverMail($email['receiverEmail']);
+                $sendMailService->getMail()->setSubject($email['subject']);
+            }
+            GeneralUtility::unlink_tempfile($powermailPdfFile);
+            return $message->isSent();
+        }
+        return null;
     }
 }
