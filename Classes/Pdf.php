@@ -7,12 +7,14 @@ use In2code\Powermail\Controller\FormController;
 use In2code\Powermail\Domain\Model\Answer;
 use In2code\Powermail\Domain\Model\Field;
 use In2code\Powermail\Domain\Model\Mail;
+use In2code\Powermail\Domain\Service\Mail\SendMailService;
+use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Error\Exception;
+use TYPO3\CMS\Core\Mail\MailMessage;
 use TYPO3\CMS\Core\Resource\File;
-use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
-use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
@@ -46,13 +48,13 @@ class Pdf
 
     /**
      * @param Mail $mail
-     * @return File
+     * @return string
      * @throws Exception
      */
     protected function generatePdf(Mail $mail)
     {
         //Normal Fields
-        $fieldMap = $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_powermailpdf.']['settings.']['fieldMap.'];
+        $fieldMap = $this->settings['fieldMap.'];
 
         $answers = $mail->getAnswers();
         $fdfDataStrings = array();
@@ -60,7 +62,7 @@ class Pdf
         foreach ($fieldMap as $key => $value) {
             foreach ($answers as $answer) {
                 if ($value == $answer->getField()->getMarker()) {
-                    $fdfDataStrings[$key] = $answer->getValue();
+                    $fdfDataStrings[$key] = utf8_decode($answer->getValue());
                 }
             }
         }
@@ -69,39 +71,50 @@ class Pdf
 
         if (!empty($pdfOriginal)) {
             $info = pathinfo($pdfOriginal);
-            $pdfFilename = basename($pdfOriginal, '.' . $info['extension']) . '_';
-            $pdfTempFile = GeneralUtility::tempnam($pdfFilename, '.pdf');
+            $pdfFilename = urlencode(strtolower(basename($pdfOriginal, '.' . $info['extension'])));
+            $pdfTempFile = GeneralUtility::tempnam($pdfFilename . '_', '.pdf');
             $pdf = new \FPDM($pdfOriginal);
             $pdf->useCheckboxParser = true; // Checkbox parsing is ignored (default FPDM behaviour) unless enabled with this setting https://github.com/codeshell/fpdm#checkboxes
-            $pdf->Load($fdfDataStrings, true); // second parameter: false if field values are in ISO-8859-1, true if UTF-8
-            $pdf->Merge();
+            $pdf->Load($fdfDataStrings); // second parameter: false if field values are in ISO-8859-1, true if UTF-8
+            $pdf->Merge($this->settings['target.']['flatten'] == true);
             $pdf->Output("F", GeneralUtility::getFileAbsFileName($pdfTempFile));
+            $nameArray = [];
+            $nameArray[] = $pdfFilename;
+            if ($this->additionalNamePart !== '') $nameArray[] = urlencode($this->additionalNamePart);
+            if ($this->settings['target.']['useDateTime']) $nameArray[] = \date('YmdTHis');
+            $this->fileName = strtolower(implode('_', array_filter($nameArray)));
 
         } else {
             throw new Exception("No pdf file is set in Typoscript. Please set tx_powermailpdf.settings.sourceFile if you want to use the filling feature.", 1417432239);
         }
+        if ($this->settings['target.']['pdf']) {
+            $folder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($this->settings['target.']['pdf']);
+            $this->downloadFile = $folder->addFile($pdfTempFile, $this->fileName . '.pdf');
+            return $this->downloadFile->getForLocalProcessing(false);
+        }
 
-        return $folder->addFile($pdfTempFile);
+        return $pdfTempFile;
 
     }
 
     /**
-     * @param File $file
-     * @param $label
+     * @param string $fileUrl
+     * @param string $label
+     * @param string $fileName
      * @return mixed
      */
-    protected function render(File $file, $label)
+    protected function render($fileUrl, $label, $fileName)
     {
 
-        $settings = $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_powermailpdf.']['settings.'];
         $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
         $standaloneView = $objectManager->get(StandaloneView::class);
-        $templatePath = GeneralUtility::getFileAbsFileName($settings['template']);
+        $templatePath = GeneralUtility::getFileAbsFileName($this->settings['template']);
         $standaloneView->setFormat('html');
         $standaloneView->setTemplatePathAndFilename($templatePath);
         $standaloneView->assignMultiple([
-            'link' => $file->getPublicUrl(),
-            'label' => $label
+            'link' => $fileUrl,
+            'label' => $label,
+            'fileName' => $fileName
         ]);
 
         return $standaloneView->render();
@@ -129,7 +142,7 @@ class Pdf
                 $powermailPdfFile = $this->generatePdf($mail);
 
             } else {
-                $powermailPdfFile = null;
+                $powermailPdfFile = GeneralUtility::getFileAbsFileName($this->settings['sourceFile']);
             }
 
             if ($this->settings['showDownloadLink'] && $this->settings['target.']['pdf'] && !empty($this->downloadFile)) {
@@ -156,7 +169,7 @@ class Pdf
 
             if ($this->settings['email.']['attachFile']) {
                 // set pdf filename for attachment via TypoScript
-                if ($formController) {
+                if ($formController && method_exists($formController, 'setSettings')) {
                     /** @var FormController $formController */
                     $settingsPowermail = $formController->getSettings();
                     $settingsPowermail['receiver']['addAttachment']['value'] = $powermailPdfFile;
