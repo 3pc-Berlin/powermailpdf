@@ -38,17 +38,6 @@ class Pdf
      */
     protected function generatePdf(Mail $mail)
     {
-
-        $settings = $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_powermailpdf.']['settings.'];
-
-        /** @var Folder $folder */
-        $folder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($settings['target.']['pdf']);
-
-        // Include \FPDM library from phar file, if not included already (e.g. composer installation)
-        if (!class_exists('\FPDM')) {
-            @include 'phar://' . ExtensionManagementUtility::extPath('powermailpdf') . 'Resources/Private/PHP/fpdm.phar/vendor/autoload.php';
-        }
-
         //Normal Fields
         $fieldMap = $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_powermailpdf.']['settings.']['fieldMap.'];
 
