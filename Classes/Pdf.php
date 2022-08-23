@@ -67,7 +67,7 @@ class Pdf
             }
         }
 
-        $pdfOriginal = GeneralUtility::getFileAbsFileName($GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_powermailpdf.']['settings.']['sourceFile']);
+        $pdfOriginal = GeneralUtility::getFileAbsFileName($this->settings['sourceFile']);
 
         if (!empty($pdfOriginal)) {
             $info = pathinfo($pdfOriginal);
@@ -143,6 +143,7 @@ class Pdf
 
             } else {
                 $powermailPdfFile = GeneralUtility::getFileAbsFileName($this->settings['sourceFile']);
+                $this->fileName = basename($powermailPdfFile);
             }
 
             if ($this->settings['showDownloadLink'] && $this->settings['target.']['pdf'] && !empty($this->downloadFile)) {
