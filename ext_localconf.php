@@ -1,15 +1,15 @@
 <?php
 if (!defined('TYPO3_MODE')) {
-	die ('Access denied.');
+    die ('Access denied.');
 }
 
 $signalDispatcher = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Extbase\SignalSlot\Dispatcher::class);
 
 $signalDispatcher->connect(
-		'In2code\\Powermail\\Controller\\FormController',
-		'createActionBeforeRenderView',
-		\Undkonsorten\Powermailpdf\Pdf::class,
-		'createActionBeforeRenderView'
+        'In2code\\Powermail\\Controller\\FormController',
+        'createActionBeforeRenderView',
+        \Undkonsorten\Powermailpdf\Pdf::class,
+        'createActionBeforeRenderView'
 );
 
 // Change mail

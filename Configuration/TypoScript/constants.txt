@@ -1,28 +1,28 @@
 plugin.tx_powermailpdf {
-	settings{
-	    target{
+    settings{
+        target{
             # cat=plugin.tx_powermailpdf/settings; type=string; label=Target pdf:Format StoragePid:Folder
             pdf =
-			# marker of powermail field
-			additionalNamePart =
-			# as part of download file name
-			useDateTime = 1
-			# flatten pdf
-			flatten = 1
+            # marker of powermail field
+            additionalNamePart =
+            # as part of download file name
+            useDateTime = 1
+            # flatten pdf
+            flatten = 1
         }
         # cat=plugin.tx_powermailpdf/template; type=input; label=Template
         template = EXT:powermailpdf/Resources/Private/Template/Link.html
-		# cat=plugin.tx_powermailpdf/enablePowermailPdf; type=boolean; label=Enable Powermail PDF
-		enablePowermailPdf = 0
-		# cat=plugin.tx_powermailpdf/sourceFile; type=string; label=The path to the pdf to be used of filled out
-		sourceFile =
-		# cat=plugin.tx_powermailpdf/showDownload; type=boolean; label=Show download link in submit page
-		showDownloadLink = 1
-		# cat=plugin.tx_powermailpdf/fillPdf; type=boolean; label=Fill the pdf?
-		fillPdf = 1
-		email{
-			# cat=plugin.tx_powermailpdf/attachFile; type=boolean; label=Attach PDF to email
-			attachFile = 1
-		}
-	}
+        # cat=plugin.tx_powermailpdf/enablePowermailPdf; type=boolean; label=Enable Powermail PDF
+        enablePowermailPdf = 0
+        # cat=plugin.tx_powermailpdf/sourceFile; type=string; label=The path to the pdf to be used of filled out
+        sourceFile =
+        # cat=plugin.tx_powermailpdf/showDownload; type=boolean; label=Show download link in submit page
+        showDownloadLink = 1
+        # cat=plugin.tx_powermailpdf/fillPdf; type=boolean; label=Fill the pdf?
+        fillPdf = 1
+        email{
+            # cat=plugin.tx_powermailpdf/attachFile; type=boolean; label=Attach PDF to email
+            attachFile = 1
+        }
+    }
 }

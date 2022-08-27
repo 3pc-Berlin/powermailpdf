@@ -4,34 +4,34 @@
     "description": "Powermail PDF Form",
     "homepage": "https://www.undkonsorten.com",
     "authors": [
-		{
-			"name": "Eike Starkmann",
-			"email": "starkmann@undkonsorten.com",
-			"homepage": "http://undkonsorten.com",
-			"role": "Developer"
-		}
+        {
+            "name": "Eike Starkmann",
+            "email": "starkmann@undkonsorten.com",
+            "homepage": "http://undkonsorten.com",
+            "role": "Developer"
+        }
     ],
     "license": ["GPL-2.0+"],
     "keywords": ["pdf", "TYPO3", "powermail"],
-	"repositories": [
-		{
-			"type": "vcs",
-			"url": "git@github.com:3pc-Berlin/fpdm.git"
-		}
-	],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:3pc-Berlin/fpdm.git"
+        }
+    ],
     "require": {
         "typo3/cms-core": "^9.5 || ^10.4 || ^11.5",
         "tmw/fpdm": "dev-with-globally-installed-pdftk",
-		"in2code/powermail": "^7 || ^8 || ^9 || ^10"
+        "in2code/powermail": "^7 || ^8 || ^9 || ^10"
     },
-	"extra": {
-		"typo3/cms": {
-			"extension-key": "powermailpdf"
-		}
-	},
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "powermailpdf"
+        }
+    },
     "autoload": {
-		"psr-4": {
-		 "Undkonsorten\\Powermailpdf\\": "Classes"
-		}
+        "psr-4": {
+         "Undkonsorten\\Powermailpdf\\": "Classes"
+        }
   }
 }

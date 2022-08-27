@@ -12,8 +12,8 @@ Installation
 
 .. code-block:: typoscript
 
-	plugin.tx_powermailpdf.settings.enablePowermailPdf = 1
+    plugin.tx_powermailpdf.settings.enablePowermailPdf = 1
 
 .. Important::
 
-	**Important:** If you have multiple powermail form, but only one form should create a PDF – Add this constant only on the page with the powermail form plugin.
+    **Important:** If you have multiple powermail form, but only one form should create a PDF – Add this constant only on the page with the powermail form plugin.
