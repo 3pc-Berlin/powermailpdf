@@ -11,6 +11,7 @@ use In2code\Powermail\Domain\Service\Mail\SendMailService;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Error\Exception;
 use TYPO3\CMS\Core\Mail\MailMessage;
+use TYPO3\CMS\Core\Resource\DuplicationBehavior;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -89,7 +90,7 @@ class Pdf
         }
         if ($this->settings['target.']['pdf']) {
             $folder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($this->settings['target.']['pdf']);
-            $this->downloadFile = $folder->addFile($pdfTempFile, $this->fileName . '.pdf');
+            $this->downloadFile = $folder->addFile($pdfTempFile, $this->fileName . '.pdf', DuplicationBehavior::REPLACE);
             return $this->downloadFile->getForLocalProcessing(false);
         }
 
