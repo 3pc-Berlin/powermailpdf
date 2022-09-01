@@ -83,14 +83,14 @@ class Pdf
             $nameArray[] = $pdfFilename;
             if ($this->additionalNamePart !== '') $nameArray[] = urlencode($this->additionalNamePart);
             if ($this->settings['target.']['useDateTime']) $nameArray[] = \date('YmdTHis');
-            $this->fileName = strtolower(implode('_', array_filter($nameArray)));
+            $this->fileName = strtolower(implode('_', array_filter($nameArray))) . '.pdf';
 
         } else {
             throw new Exception("No pdf file is set in Typoscript. Please set tx_powermailpdf.settings.sourceFile if you want to use the filling feature.", 1417432239);
         }
         if ($this->settings['target.']['pdf']) {
             $folder = $this->resourceFactory->getFolderObjectFromCombinedIdentifier($this->settings['target.']['pdf']);
-            $this->downloadFile = $folder->addFile($pdfTempFile, $this->fileName . '.pdf', DuplicationBehavior::REPLACE);
+            $this->downloadFile = $folder->addFile($pdfTempFile, $this->fileName, DuplicationBehavior::REPLACE);
             return $this->downloadFile->getForLocalProcessing(false);
         }
 
